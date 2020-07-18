@@ -1,16 +1,14 @@
 #ifndef _LIST_BUFFER_H_
 #define _LIST_BUFFER_H_
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include "list.h"
+typedef struct ListBuffer_s ListBuffer;
+struct ListBuffer_s;
 
-int Display_enqueue(const char* pMsg, int length);
-void Display_dequeue();
-void Display_free();
-
-int Send_enqueue(const char* pMsg, int length);
-void Send_dequeue();
-void Send_free();
+ListBuffer *ListBuffer_init();
+void ListBuffer_free(ListBuffer *plb);
+void ListBuffer_enqueue(ListBuffer *plb, char *pItem);
+char *ListBuffer_dequeue(ListBuffer *plb);
