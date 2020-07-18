@@ -1,4 +1,3 @@
-#include <list.h>
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,6 +5,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+#include "listbuffer.h"
 #include "receive.h"
 
 int LOCAL_PORT, REMOTE_PORT;
@@ -17,7 +17,8 @@ int main(int argc, char* argv[]) {
   REMOTE_HOST_NAME = argv[2];
   REMOTE_PORT = argv[3];
 
-  struct addrinfo hints, *remoteinfo, *localinfo;
+  struct addrinfo hints;
+  struct addrinfo *remoteinfo, *localinfo;
   memset(&hints, 0, sizeof(hints));
   hints.ai_family = AF_INET;
   hints.ai_socktype = SOCK_DGRAM;
@@ -35,5 +36,17 @@ int main(int argc, char* argv[]) {
     // ERROR HANDLING
   }
 
-  // ready to send/recv
+  ListBuffer *plb_display, *plb_send;
+  plb_display = ListBuffer_init();
+  plb_send = ListBuffer_init();
+
+  Input_init(plb_send);
+  Send_init(plb_display, &socketfd, remoteinfo);
+  Display_init(plb_display);
+  Receive_init(plb_display, &socketfd);
+
+  Input_exit();
+  Send_exit();
+  Display_exit();
+  Receive_exit();
 }
