@@ -11,7 +11,7 @@
 
 #include "listbuffer.h"
 
-#define MAX_BUFFER 40
+#define MAX_BUFFER 100
 
 static pthread_t threadPID;
 static int socketfd;
@@ -24,7 +24,7 @@ void Receive_listen() {
     unsigned int sin_len = sizeof(sinRemote);
 
     // Receive (blocking call)
-    int bytesRx = recvfrom(socketfd, buffer, MAX_BUFFER, MSG_WAITALL,
+    int bytesRx = recvfrom(socketfd, buffer, MAX_BUFFER, 0,
                            (struct sockaddr*)&sinRemote, &sin_len);
 
     // Format into null term'd string
@@ -32,7 +32,7 @@ void Receive_listen() {
     buffer[terminatedIdx] = '\0';
 
     // Critical Section:
-    { Display_enqueue(buffer); }
+    ListBuffer_enqueue(plb, buffer);
   }
 }
 
