@@ -2,6 +2,7 @@
 
 #include <netdb.h>
 #include <pthread.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,15 +15,16 @@
 
 static pthread_t threadPID;
 static int socketfd;
+static ListBuffer* plb;
 
-int Receive_listen() {
+void Receive_listen() {
   while (true) {
     char* buffer = (char*)malloc(MAX_BUFFER * sizeof(char));
     struct sockaddr_in sinRemote;
     unsigned int sin_len = sizeof(sinRemote);
 
     // Receive (blocking call)
-    int bytesRx = recvfrom(sockfd, buffer, MAX_BUFFER, MSG_WAITALL,
+    int bytesRx = recvfrom(socketfd, buffer, MAX_BUFFER, MSG_WAITALL,
                            (struct sockaddr*)&sinRemote, &sin_len);
 
     // Format into null term'd string
@@ -34,7 +36,9 @@ int Receive_listen() {
   }
 }
 
-int Receive_init(const int* sfd) {
+void Receive_init(const ListBuffer* pListBuffer, const int* sfd) {
   socketfd = *sfd;
+  plb = pListBuffer;
   int iret1 = pthread_create(&threadPID, NULL, Receive_listen, NULL);
 }
+void Receive_exit() { pthread_join(threadPID, NULL); }

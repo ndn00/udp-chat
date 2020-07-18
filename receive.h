@@ -1,5 +1,6 @@
 #ifndef _RECEIVE_H_
 #define _RECEIVE_H_
+#endif
 
 #include <netdb.h>
 #include <stdio.h>
@@ -8,6 +9,8 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-int Receive_init();
+#include "listbuffer.h"
 
-int Receive_exit();
+void Receive_init(const ListBuffer* pListBuffer, const int* sfd);
+
+void Receive_exit();
