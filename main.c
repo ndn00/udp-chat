@@ -26,15 +26,16 @@ int main(int argc, char *argv[]) {
   hints.ai_family = AF_INET;
   hints.ai_socktype = SOCK_DGRAM;
 
-  if (getaddrinfo("localhost", "6000", &hints, &remoteinfo) != 0) {
+  if (getaddrinfo(argv[2], argv[3], &hints, &remoteinfo) != 0) {
     // ERROR HANDLING
   }
+  printf("remote addr: %d", remoteinfo->ai_addr);
   hints.ai_flags = AI_PASSIVE;
-  if (getaddrinfo(NULL, "5009", &hints, &localinfo) != 0) {
+  if (getaddrinfo(NULL, argv[1], &hints, &localinfo) != 0) {
     // ERROR HANDLING
   }
 
-  int socketfd = socket(localinfo->ai_family, localinfo->ai_socktype, 0);
+  int socketfd = socket(PF_INET, SOCK_DGRAM, 0);
   if (bind(socketfd, localinfo->ai_addr, localinfo->ai_addrlen) != 0) {
     // ERROR HANDLING
   }
@@ -44,11 +45,15 @@ int main(int argc, char *argv[]) {
   plb_send = ListBuffer_init();
 
   printf("before making threads");
+  fflush(stdout);
 
   Input_init(plb_send);
-  Send_init(plb_display, &socketfd, remoteinfo);
+  Send_init(plb_send, &socketfd, remoteinfo);
   Display_init(plb_display);
   Receive_init(plb_display, &socketfd);
+
+  printf("finished making threads");
+  fflush(stdout);
 
   Input_exit();
   Send_exit();

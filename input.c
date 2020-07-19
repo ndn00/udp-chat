@@ -27,6 +27,8 @@ void* Input_scan(void* unused) {
     // Critical Section:
     ListBuffer_enqueue(plb, buffer);
 
+    printf("Signalling send\n");
+    fflush(stdout);
     Send_signal_transfer();
   }
   return NULL;
@@ -38,6 +40,6 @@ void Input_init(ListBuffer* pListBuffer) {
 }
 
 void Input_exit() {
-  ListBuffer_free(plb);
   pthread_join(threadPID, NULL);
+  ListBuffer_free(plb);
 }

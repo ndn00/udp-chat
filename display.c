@@ -50,4 +50,7 @@ void Display_init(ListBuffer* pListBuffer) {
   }
   pthread_create(&threadPID, NULL, Display_print, NULL);
 }
-void Display_exit() { pthread_join(threadPID, NULL); }
+void Display_exit() {
+  pthread_join(threadPID, NULL);
+  ListBuffer_free(plb);
+}
