@@ -18,7 +18,7 @@ static pthread_t threadPID;
 static int socketfd;
 static ListBuffer* plb;
 
-void Receive_listen() {
+void* Receive_listen(void* unused) {
   while (true) {
     char* buffer = (char*)malloc(MAX_BUFFER * sizeof(char));
     struct sockaddr_in sinRemote;
@@ -37,11 +37,12 @@ void Receive_listen() {
 
     Display_signal_print();
   }
+  return NULL;
 }
 
-void Receive_init(const ListBuffer* pListBuffer, const int* sfd) {
+void Receive_init(ListBuffer* pListBuffer, const int* sfd) {
   socketfd = *sfd;
   plb = pListBuffer;
-  int iret1 = pthread_create(&threadPID, NULL, Receive_listen, NULL);
+  pthread_create(&threadPID, NULL, Receive_listen, NULL);
 }
 void Receive_exit() { pthread_join(threadPID, NULL); }

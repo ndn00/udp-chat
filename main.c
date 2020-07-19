@@ -5,17 +5,20 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+#include "display.h"
+#include "input.h"
 #include "listbuffer.h"
 #include "receive.h"
+#include "send.h"
 
-int LOCAL_PORT, REMOTE_PORT;
-char* REMOTE_HOST_NAME;
+char *LOCAL_PORT, REMOTE_PORT;
+char REMOTE_HOST_NAME[20];
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   // init arguments
-  LOCAL_PORT = argv[1];
-  REMOTE_HOST_NAME = argv[2];
-  REMOTE_PORT = argv[3];
+  // LOCAL_PORT = argv[1];
+  // REMOTE_HOST_NAME = argv[2];
+  // REMOTE_PORT = argv[3];
 
   struct addrinfo hints;
   struct addrinfo *remoteinfo, *localinfo;
@@ -23,11 +26,11 @@ int main(int argc, char* argv[]) {
   hints.ai_family = AF_INET;
   hints.ai_socktype = SOCK_DGRAM;
 
-  if (getaddrinfo(REMOTE_HOST_NAME, REMOTE_PORT, &hints, &remoteinfo) != 0) {
+  if (getaddrinfo("localhost", "6000", &hints, &remoteinfo) != 0) {
     // ERROR HANDLING
   }
   hints.ai_flags = AI_PASSIVE;
-  if (getaddrinfo(NULL, LOCAL_PORT, &hints, &localinfo) != 0) {
+  if (getaddrinfo(NULL, "5009", &hints, &localinfo) != 0) {
     // ERROR HANDLING
   }
 
@@ -39,6 +42,8 @@ int main(int argc, char* argv[]) {
   ListBuffer *plb_display, *plb_send;
   plb_display = ListBuffer_init();
   plb_send = ListBuffer_init();
+
+  printf("before making threads");
 
   Input_init(plb_send);
   Send_init(plb_display, &socketfd, remoteinfo);

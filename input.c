@@ -17,8 +17,8 @@
 static pthread_t threadPID;
 static ListBuffer* plb;
 
-void Input_scan() {
-  while (true) { 
+void* Input_scan(void* unused) {
+  while (true) {
     char* buffer = (char*)malloc(MAX_BUFFER * sizeof(char));
     if (fgets(buffer, MAX_BUFFER, stdin) == NULL) {
       // Error
@@ -26,16 +26,18 @@ void Input_scan() {
 
     // Critical Section:
     ListBuffer_enqueue(plb, buffer);
-    
-    Send_signal_transfer();  
+
+    Send_signal_transfer();
   }
+  return NULL;
 }
 
-void Input_init(const ListBuffer* pListBuffer) {
+void Input_init(ListBuffer* pListBuffer) {
   plb = pListBuffer;
-  int iret1 = pthread_create(&threadPID, NULL, Input_scan, NULL);
+  pthread_create(&threadPID, NULL, Input_scan, NULL);
 }
 
-void Input_exit() { 
+void Input_exit() {
   ListBuffer_free(plb);
-  pthread_join(threadPID, NULL); }
+  pthread_join(threadPID, NULL);
+}

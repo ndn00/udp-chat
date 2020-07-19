@@ -1,6 +1,5 @@
 #ifndef _SEND_H_
 #define _SEND_H_
-#endif
 
 #include <netdb.h>
 #include <stdio.h>
@@ -11,9 +10,11 @@
 
 #include "listbuffer.h"
 
-void Send_init(const ListBuffer* pListBuffer, const int* pSfd,
+void Send_init(ListBuffer* pListBuffer, const int* pSfd,
                struct addrinfo* pRinfo);
 
 void Send_exit();
 
 void Send_signal_transfer();
+
+#endif

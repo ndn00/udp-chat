@@ -1,2 +1,20 @@
-buildTest:
-	gcc -std=c11 -o sampleTest instructorList.o sampleTest.c -Wall -Werror
+
+
+CFLAGS = -Wall -g -std=c11 -D _GNU_SOURCE
+
+all: build
+build: main.o instructorList.o receive.o send.o input.o display.o listbuffer.o
+	gcc $(CFLAGS) $^ -o s-talk -lpthread
+
+%.o: %.c
+	gcc -c $(CFLAGS) $< -lpthread
+
+run: build
+	./s-talk
+
+valgrind: build
+	valgrind --leak-check=full ./s-talk
+
+clean:
+	rm -f s-talk
+	rm -f *.o

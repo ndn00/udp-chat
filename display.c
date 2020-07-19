@@ -19,7 +19,7 @@ static pthread_cond_t cond;
 
 static ListBuffer* plb;
 
-void Display_print() {
+void* Display_print(void* unused) {
   while (true) {
     pthread_mutex_lock(&mutex);
     { pthread_cond_wait(&cond, &mutex); }
@@ -31,6 +31,7 @@ void Display_print() {
     fflush(stdout);
     free(buffer);
   }
+  return NULL;
 }
 
 void Display_signal_print() {
@@ -39,7 +40,7 @@ void Display_signal_print() {
   pthread_mutex_unlock(&mutex);
 }
 
-void Display_init(const ListBuffer* pListBuffer) {
+void Display_init(ListBuffer* pListBuffer) {
   plb = pListBuffer;
   if (pthread_mutex_init(&(mutex), NULL) != 0) {
     // Error handling
@@ -47,6 +48,6 @@ void Display_init(const ListBuffer* pListBuffer) {
   if (pthread_cond_init(&(cond), NULL) != 0) {
     // Error handling
   }
-  int iret1 = pthread_create(&threadPID, NULL, Display_print, NULL);
+  pthread_create(&threadPID, NULL, Display_print, NULL);
 }
 void Display_exit() { pthread_join(threadPID, NULL); }

@@ -21,7 +21,7 @@ static int socketfd;
 static struct addrinfo* remoteinfo;
 static ListBuffer* plb;
 
-void Send_transfer() {
+void* Send_transfer(void* unused) {
   while (true) {
     pthread_mutex_lock(&mutex);
     { pthread_cond_wait(&cond, &mutex); }
@@ -34,6 +34,7 @@ void Send_transfer() {
            remoteinfo->ai_addrlen);
     free(buffer);
   }
+  return NULL;
 }
 void Send_signal_transfer() {
   pthread_mutex_lock(&mutex);
@@ -41,7 +42,7 @@ void Send_signal_transfer() {
   pthread_mutex_unlock(&mutex);
 }
 
-void Send_init(const ListBuffer* pListBuffer, const int* pSfd,
+void Send_init(ListBuffer* pListBuffer, const int* pSfd,
                struct addrinfo* pRinfo) {
   socketfd = *pSfd;
   remoteinfo = pRinfo;
@@ -52,6 +53,6 @@ void Send_init(const ListBuffer* pListBuffer, const int* pSfd,
   if (pthread_cond_init(&(cond), NULL) != 0) {
     // Error handling
   }
-  int iret1 = pthread_create(&threadPID, NULL, Send_transfer, NULL);
+  pthread_create(&threadPID, NULL, Send_transfer, NULL);
 }
 void Send_exit() { pthread_join(threadPID, NULL); }
