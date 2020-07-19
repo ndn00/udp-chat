@@ -4,9 +4,6 @@
 #include <netdb.h>
 #include <pthread.h>
 #include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 
@@ -25,9 +22,9 @@ static ListBuffer* plb;
 
 void* Send_transfer(void* unused) {
   while (true) {
-    pthread_mutex_lock(&mutex);
-    { pthread_cond_wait(&cond, &mutex); }
-    pthread_mutex_unlock(&mutex);
+    assert(pthread_mutex_lock(&mutex) == 0);
+    { assert(pthread_cond_wait(&cond, &mutex) == 0); }
+    assert(pthread_mutex_unlock(&mutex) == 0);
 
     // Critical Section
     char* buffer = (char*)ListBuffer_dequeue(plb);
@@ -35,20 +32,18 @@ void* Send_transfer(void* unused) {
     // Receive (blocking call)
     assert(sendto(socketfd, buffer, strlen(buffer), 0, remoteinfo->ai_addr,
                   remoteinfo->ai_addrlen) != -1);
-    bool shutdown = (strcmp(buffer, SHUTDOWN_STR) == 0);
+    bool shutdown = Shutdown_check(buffer);
     free(buffer);
     if (shutdown) {
-      fputs(SHUTDOWN_MSG, stdout);
-      fflush(stdout);
       Shutdown_signal();
     }
   }
   return NULL;
 }
 void Send_signal_transfer() {
-  pthread_mutex_lock(&mutex);
-  { pthread_cond_signal(&cond); }
-  pthread_mutex_unlock(&mutex);
+  assert(pthread_mutex_lock(&mutex) == 0);
+  { assert(pthread_cond_signal(&cond) == 0); }
+  assert(pthread_mutex_unlock(&mutex) == 0);
 }
 
 void Send_init(ListBuffer* pListBuffer, const int* pSfd,

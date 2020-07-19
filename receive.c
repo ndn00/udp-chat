@@ -4,14 +4,12 @@
 #include <netdb.h>
 #include <pthread.h>
 #include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 
 #include "display.h"
 #include "listbuffer.h"
+#include "shutdown.h"
 
 #define MAX_BUFFER 100
 
@@ -23,6 +21,8 @@ static char* buffer;
 void* Receive_listen(void* unused) {
   while (true) {
     buffer = (char*)malloc(MAX_BUFFER * sizeof(char));
+
+    // dummy
     struct sockaddr_in sinRemote;
     unsigned int sin_len = sizeof(sinRemote);
 

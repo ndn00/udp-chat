@@ -5,10 +5,6 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 
 #include "listbuffer.h"
 #include "shutdown.h"
@@ -23,21 +19,19 @@ static ListBuffer* plb;
 
 void* Display_print(void* unused) {
   while (true) {
-    pthread_mutex_lock(&mutex);
-    { pthread_cond_wait(&cond, &mutex); }
-    pthread_mutex_unlock(&mutex);
+    assert(pthread_mutex_lock(&mutex) == 0);
+    { assert(pthread_cond_wait(&cond, &mutex) == 0); }
+    assert(pthread_mutex_unlock(&mutex) == 0);
 
     // Critical Section
     char* buffer = (char*)ListBuffer_dequeue(plb);
-    bool shutdown = (strcmp(buffer, SHUTDOWN_STR) == 0);
-    fputs("<< ", stdout);
+    bool shutdown = Shutdown_check(buffer);
+    // fputs("<< ", stdout);
     fputs(buffer, stdout);
     fflush(stdout);
     free(buffer);
 
     if (shutdown) {
-      fputs(SHUTDOWN_MSG, stdout);
-      fflush(stdout);
       Shutdown_signal();
     }
   }
@@ -45,9 +39,9 @@ void* Display_print(void* unused) {
 }
 
 void Display_signal_print() {
-  pthread_mutex_lock(&mutex);
-  { pthread_cond_signal(&cond); }
-  pthread_mutex_unlock(&mutex);
+  assert(pthread_mutex_lock(&mutex) == 0);
+  { assert(pthread_cond_signal(&cond) == 0); }
+  assert(pthread_mutex_unlock(&mutex) == 0);
 }
 
 void Display_init(ListBuffer* pListBuffer) {
