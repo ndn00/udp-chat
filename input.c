@@ -16,19 +16,15 @@
 
 static pthread_t threadPID;
 static ListBuffer* plb;
-
+static char* buffer;
 void* Input_scan(void* unused) {
   while (true) {
-    char* buffer = (char*)malloc(MAX_BUFFER * sizeof(char));
-    if (fgets(buffer, MAX_BUFFER, stdin) == NULL) {
-      // Error
-    }
+    buffer = (char*)malloc(MAX_BUFFER * sizeof(char));
+    fgets(buffer, MAX_BUFFER, stdin);
 
     // Critical Section:
     ListBuffer_enqueue(plb, buffer);
 
-    printf("Signalling send\n");
-    fflush(stdout);
     Send_signal_transfer();
   }
   return NULL;
@@ -40,6 +36,7 @@ void Input_init(ListBuffer* pListBuffer) {
 }
 
 void Input_exit() {
+  pthread_cancel(threadPID);
   pthread_join(threadPID, NULL);
-  ListBuffer_free(plb);
+  free(buffer);
 }

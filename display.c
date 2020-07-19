@@ -10,6 +10,7 @@
 #include <sys/types.h>
 
 #include "listbuffer.h"
+#include "shutdown.h"
 
 #define MAX_BUFFER 100
 
@@ -27,9 +28,17 @@ void* Display_print(void* unused) {
 
     // Critical Section
     char* buffer = (char*)ListBuffer_dequeue(plb);
+    bool shutdown = (strcmp(buffer, SHUTDOWN_STR) == 0);
+    fputs("<< ", stdout);
     fputs(buffer, stdout);
     fflush(stdout);
     free(buffer);
+
+    if (shutdown) {
+      fputs(SHUTDOWN_MSG, stdout);
+      fflush(stdout);
+      Shutdown_signal();
+    }
   }
   return NULL;
 }
@@ -51,6 +60,6 @@ void Display_init(ListBuffer* pListBuffer) {
   pthread_create(&threadPID, NULL, Display_print, NULL);
 }
 void Display_exit() {
+  pthread_cancel(threadPID);
   pthread_join(threadPID, NULL);
-  ListBuffer_free(plb);
 }

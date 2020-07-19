@@ -10,6 +10,7 @@
 #include <sys/types.h>
 
 #include "listbuffer.h"
+#include "shutdown.h"
 
 #define MAX_BUFFER 100
 
@@ -26,19 +27,20 @@ void* Send_transfer(void* unused) {
     pthread_mutex_lock(&mutex);
     { pthread_cond_wait(&cond, &mutex); }
     pthread_mutex_unlock(&mutex);
-    printf("send unblocked");
-    fflush(stdout);
 
     // Critical Section
     char* buffer = (char*)ListBuffer_dequeue(plb);
 
-    printf("sending string: %s\n", buffer);
-    fflush(stdout);
-
     // Receive (blocking call)
     sendto(socketfd, buffer, strlen(buffer), 0, remoteinfo->ai_addr,
            remoteinfo->ai_addrlen);
+    bool shutdown = (strcmp(buffer, SHUTDOWN_STR) == 0);
     free(buffer);
+    if (shutdown) {
+      fputs(SHUTDOWN_MSG, stdout);
+      fflush(stdout);
+      Shutdown_signal();
+    }
   }
   return NULL;
 }
@@ -62,6 +64,6 @@ void Send_init(ListBuffer* pListBuffer, const int* pSfd,
   pthread_create(&threadPID, NULL, Send_transfer, NULL);
 }
 void Send_exit() {
-  printf("send exiting");
+  pthread_cancel(threadPID);
   pthread_join(threadPID, NULL);
 }

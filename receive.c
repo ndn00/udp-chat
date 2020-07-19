@@ -17,10 +17,11 @@
 static pthread_t threadPID;
 static int socketfd;
 static ListBuffer* plb;
+static char* buffer;
 
 void* Receive_listen(void* unused) {
   while (true) {
-    char* buffer = (char*)malloc(MAX_BUFFER * sizeof(char));
+    buffer = (char*)malloc(MAX_BUFFER * sizeof(char));
     struct sockaddr_in sinRemote;
     unsigned int sin_len = sizeof(sinRemote);
 
@@ -45,4 +46,8 @@ void Receive_init(ListBuffer* pListBuffer, const int* sfd) {
   plb = pListBuffer;
   pthread_create(&threadPID, NULL, Receive_listen, NULL);
 }
-void Receive_exit() { pthread_join(threadPID, NULL); }
+void Receive_exit() {
+  pthread_cancel(threadPID);
+  pthread_join(threadPID, NULL);
+  free(buffer);
+}
