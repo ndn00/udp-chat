@@ -1,5 +1,6 @@
 #include "input.h"
 
+#include <assert.h>
 #include <netdb.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -32,11 +33,11 @@ void* Input_scan(void* unused) {
 
 void Input_init(ListBuffer* pListBuffer) {
   plb = pListBuffer;
-  pthread_create(&threadPID, NULL, Input_scan, NULL);
+  assert(pthread_create(&threadPID, NULL, Input_scan, NULL) == 0);
 }
 
 void Input_exit() {
-  pthread_cancel(threadPID);
-  pthread_join(threadPID, NULL);
+  assert(pthread_cancel(threadPID) == 0);
+  assert(pthread_join(threadPID, NULL) == 0);
   free(buffer);
 }

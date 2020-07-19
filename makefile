@@ -13,7 +13,7 @@ run: build
 	./s-talk
 
 valgrind: build
-	valgrind --leak-check=full ./s-talk
+	valgrind --leak-check=full ./s-talk 6969 localhost 6968
 
 clean:
 	rm -f s-talk

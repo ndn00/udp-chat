@@ -2,8 +2,8 @@
 
 #include <pthread.h>
 
-pthread_mutex_t mutex;
-pthread_cond_t cond;
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 void Shutdown_wait() {
   pthread_mutex_lock(&mutex);

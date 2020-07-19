@@ -1,5 +1,6 @@
 #include "display.h"
 
+#include <assert.h>
 #include <netdb.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -51,15 +52,11 @@ void Display_signal_print() {
 
 void Display_init(ListBuffer* pListBuffer) {
   plb = pListBuffer;
-  if (pthread_mutex_init(&(mutex), NULL) != 0) {
-    // Error handling
-  }
-  if (pthread_cond_init(&(cond), NULL) != 0) {
-    // Error handling
-  }
-  pthread_create(&threadPID, NULL, Display_print, NULL);
+  assert(pthread_mutex_init(&(mutex), NULL) == 0);
+  assert(pthread_cond_init(&(cond), NULL) == 0);
+  assert(pthread_create(&threadPID, NULL, Display_print, NULL) == 0);
 }
 void Display_exit() {
-  pthread_cancel(threadPID);
-  pthread_join(threadPID, NULL);
+  assert(pthread_cancel(threadPID) == 0);
+  assert(pthread_join(threadPID, NULL) == 0);
 }

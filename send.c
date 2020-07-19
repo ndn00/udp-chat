@@ -1,5 +1,6 @@
 #include "send.h"
 
+#include <assert.h>
 #include <netdb.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -32,8 +33,8 @@ void* Send_transfer(void* unused) {
     char* buffer = (char*)ListBuffer_dequeue(plb);
 
     // Receive (blocking call)
-    sendto(socketfd, buffer, strlen(buffer), 0, remoteinfo->ai_addr,
-           remoteinfo->ai_addrlen);
+    assert(sendto(socketfd, buffer, strlen(buffer), 0, remoteinfo->ai_addr,
+                  remoteinfo->ai_addrlen) != -1);
     bool shutdown = (strcmp(buffer, SHUTDOWN_STR) == 0);
     free(buffer);
     if (shutdown) {
@@ -55,15 +56,11 @@ void Send_init(ListBuffer* pListBuffer, const int* pSfd,
   socketfd = *pSfd;
   remoteinfo = pRinfo;
   plb = pListBuffer;
-  if (pthread_mutex_init(&(mutex), NULL) != 0) {
-    // Error handling
-  }
-  if (pthread_cond_init(&(cond), NULL) != 0) {
-    // Error handling
-  }
-  pthread_create(&threadPID, NULL, Send_transfer, NULL);
+  assert(pthread_mutex_init(&(mutex), NULL) == 0);
+  assert(pthread_cond_init(&(cond), NULL) == 0);
+  assert(pthread_create(&threadPID, NULL, Send_transfer, NULL) == 0);
 }
 void Send_exit() {
-  pthread_cancel(threadPID);
-  pthread_join(threadPID, NULL);
+  assert(pthread_cancel(threadPID) == 0);
+  assert(pthread_join(threadPID, NULL) == 0);
 }

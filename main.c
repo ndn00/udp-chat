@@ -1,7 +1,6 @@
+#include <assert.h>
 #include <netdb.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 
@@ -19,18 +18,13 @@ int main(int argc, char *argv[]) {
   hints.ai_family = AF_INET;
   hints.ai_socktype = SOCK_DGRAM;
 
-  if (getaddrinfo(argv[2], argv[3], &hints, &remoteinfo) != 0) {
-    // ERROR HANDLING
-  }
+  assert(getaddrinfo(argv[2], argv[3], &hints, &remoteinfo) == 0);
   hints.ai_flags = AI_PASSIVE;
-  if (getaddrinfo(NULL, argv[1], &hints, &localinfo) != 0) {
-    // ERROR HANDLING
-  }
+  assert(getaddrinfo(NULL, argv[1], &hints, &localinfo) == 0);
 
   int socketfd = socket(PF_INET, SOCK_DGRAM, 0);
-  if (bind(socketfd, localinfo->ai_addr, localinfo->ai_addrlen) != 0) {
-    // ERROR HANDLING
-  }
+  assert(socketfd != -1);
+  assert(bind(socketfd, localinfo->ai_addr, localinfo->ai_addrlen) != -1);
 
   ListBuffer *plb_display, *plb_send;
   plb_display = ListBuffer_init();
@@ -49,6 +43,8 @@ int main(int argc, char *argv[]) {
   Display_exit();
   Receive_exit();
 
+  freeaddrinfo(remoteinfo);
+  freeaddrinfo(localinfo);
   ListBuffer_free(plb_display);
   ListBuffer_free(plb_send);
 }

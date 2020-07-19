@@ -1,5 +1,6 @@
 #include "listbuffer.h"
 
+#include <assert.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,15 +20,12 @@ struct ListBuffer_s {
 ListBuffer *ListBuffer_init() {
   ListBuffer *plb = (ListBuffer *)malloc(sizeof(ListBuffer));
   plb->pList = List_create();
+  assert(plb->pList != NULL);
   memset(&plb->mutex, 0, sizeof(pthread_mutex_t));
   memset(&plb->cond, 0, sizeof(pthread_mutex_t));
-  if (pthread_mutex_init(&(plb->mutex), NULL) != 0) {
-    // Error handling
-  }
-  pthread_mutex_unlock(&(plb->mutex));
-  if (pthread_cond_init(&(plb->cond), NULL) != 0) {
-    // Error handling
-  }
+  assert(pthread_mutex_init(&(plb->mutex), NULL) == 0);
+  // pthread_mutex_unlock(&(plb->mutex));
+  assert(pthread_cond_init(&(plb->cond), NULL) == 0);
 
   return plb;
 }
@@ -40,7 +38,7 @@ void ListBuffer_enqueue(ListBuffer *plb, char *pItem) {
   while (List_count(plb->pList) == MAX_LIST_BUFFER_SIZE) {
     pthread_cond_wait(&(plb->cond), &(plb->mutex));
   }
-  List_prepend(plb->pList, pItem);
+  assert(List_prepend(plb->pList, pItem) == 0);
   pthread_cond_signal(&(plb->cond));
   pthread_mutex_unlock(&(plb->mutex));
 }
@@ -52,6 +50,7 @@ char *ListBuffer_dequeue(ListBuffer *plb) {
     pthread_cond_wait(&(plb->cond), &(plb->mutex));
   }
   pItem = (char *)List_trim(plb->pList);
+  assert(pItem != NULL);
   pthread_cond_signal(&(plb->cond));
   pthread_mutex_unlock(&(plb->mutex));
   return pItem;
