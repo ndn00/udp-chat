@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+#include "display.h"
 #include "listbuffer.h"
 
 #define MAX_BUFFER 100
@@ -33,6 +34,8 @@ void Receive_listen() {
 
     // Critical Section:
     ListBuffer_enqueue(plb, buffer);
+
+    Display_signal_print();
   }
 }
 

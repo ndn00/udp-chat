@@ -30,8 +30,8 @@ void Send_transfer() {
     // Critical Section
     char* buffer = (char*)ListBuffer_dequeue(plb);
     // Receive (blocking call)
-    int bytesRx = sendto(socketfd, buffer, strlen(buffer), 0,
-                         remoteinfo->ai_addr, remoteinfo->ai_addrlen);
+    sendto(socketfd, buffer, strlen(buffer), 0, remoteinfo->ai_addr,
+           remoteinfo->ai_addrlen);
     free(buffer);
   }
 }
