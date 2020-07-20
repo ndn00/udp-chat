@@ -5,10 +5,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "condutils.h"
 #include "list.h"
+#include "shutdown.h"
 
 #define FULL_LIST_MSG "\n[Err]: Full buffer reached, possible loss messages\n"
-#define MAX_LIST_BUFFER_SIZE LIST_MAX_NUM_NODES / 2
+#define MAX_LIST_BUFFER_SIZE (LIST_MAX_NUM_NODES / 2)
 static void freeptr(void *pItem) { free(pItem); }
 
 struct ListBuffer_s {
@@ -26,14 +28,20 @@ ListBuffer *ListBuffer_init() {
 
   return plb;
 }
+void ListBuffer_signal(ListBuffer *plb) {
+  cond_signal(&(plb->cond), &(plb->mutex));
+}
 void ListBuffer_free(ListBuffer *plb) {
   List_free(plb->pList, freeptr);
-  // assert(pthread_mutex_destroy(&(plb->mutex)) == 0);
-  // assert(pthread_cond_destroy(&(plb->cond)) == 0);
+  assert(pthread_cond_destroy(&(plb->cond)) == 0);
+  assert(pthread_mutex_unlock(&(plb->mutex)) == 0);
+  assert(pthread_mutex_destroy(&(plb->mutex)) == 0);
   free(plb);
 }
 void ListBuffer_enqueue(ListBuffer *plb, char *pItem) {
   assert(pthread_mutex_lock(&(plb->mutex)) == 0);
+  printf("enq: %s %d", pItem, List_count(plb->pList));
+  fflush(stdout);
   while (List_count(plb->pList) == MAX_LIST_BUFFER_SIZE) {
     // Handle full buffer case
     fputs(FULL_LIST_MSG, stderr);
@@ -45,14 +53,20 @@ void ListBuffer_enqueue(ListBuffer *plb, char *pItem) {
 }
 
 char *ListBuffer_dequeue(ListBuffer *plb) {
-  char *pItem;
+  char *pItem = NULL;
   assert(pthread_mutex_lock(&(plb->mutex)) == 0);
-  while (List_count(plb->pList) == 0) {
+  while (List_count(plb->pList) == 0 && !Shutdown_check(NULL)) {
+    // printf("Blocked(LC=%d)", List_count(plb->pList));
+    // fflush(stdout);
     assert(pthread_cond_wait(&(plb->cond), &(plb->mutex)) == 0);
   }
-  pItem = (char *)List_trim(plb->pList);
-  assert(pItem != NULL);
+  if (!Shutdown_check(NULL)) {
+    pItem = (char *)List_trim(plb->pList);
+    assert(pItem != NULL);
+  }
   assert(pthread_cond_signal(&(plb->cond)) == 0);
   assert(pthread_mutex_unlock(&(plb->mutex)) == 0);
+  // printf("deq: %s %d", pItem, List_count(plb->pList));
+  // fflush(stdout);
   return pItem;
 }

@@ -1,5 +1,7 @@
 #include <assert.h>
+#include <errno.h>
 #include <netdb.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -13,6 +15,7 @@
 #include "send.h"
 #include "shutdown.h"
 
+FILE* fp;
 // wrapper for getaddrinfo
 static void getaddr(char* node, char* serv, struct addrinfo** ppAddr) {
   struct addrinfo hints;
@@ -22,10 +25,19 @@ static void getaddr(char* node, char* serv, struct addrinfo** ppAddr) {
   if (node == NULL) {
     hints.ai_flags = AI_PASSIVE;
   }
-  assert(getaddrinfo(node, serv, &hints, ppAddr) == 0);
+  int addrerr = getaddrinfo(node, serv, &hints, ppAddr);
+
+  // Explicitly handle host not found
+  if (addrerr == EAI_ADDRFAMILY) {
+    fputs(strerror(addrerr), stderr);
+    fflush(stderr);
+  }
+  assert(addrerr == 0);
 }
 
 int main(int argc, char* argv[]) {
+  fp = fopen("input.txt", "a+");
+
   // get local & remote info
   struct addrinfo *remoteinfo = NULL, *localinfo = NULL;
   getaddr(argv[2], argv[3], &remoteinfo);
@@ -34,7 +46,14 @@ int main(int argc, char* argv[]) {
   // create socket & bind to port
   int socketfd = socket(PF_INET, SOCK_DGRAM, 0);
   assert(socketfd != -1);
-  assert(bind(socketfd, localinfo->ai_addr, localinfo->ai_addrlen) != -1);
+  int binderr = bind(socketfd, localinfo->ai_addr, localinfo->ai_addrlen);
+
+  // Explicitly handle socket in use error
+  if (binderr == EADDRINUSE) {
+    fputs(strerror(binderr), stderr);
+    fflush(stderr);
+  }
+  assert(binderr != -1);
 
   // init shared List buffer
   ListBuffer *plb_display, *plb_send;
@@ -42,24 +61,28 @@ int main(int argc, char* argv[]) {
   plb_send = ListBuffer_init();     // shared CS of send(C) & input(P)
 
   // Spawning threads
+
   Input_init(plb_send);
   Send_init(plb_send, &socketfd, remoteinfo);
   Display_init(plb_display);
   Receive_init(plb_display, &socketfd);
 
   // main thread wait
-  Shutdown_wait();
+  Shutdown_wait(plb_send, plb_display);
 
   // Shutting down threads
   Input_exit();
   Send_exit();
-  Display_exit();
   Receive_exit();
+  Display_exit();
 
-  // Clean ups
-  freeaddrinfo(remoteinfo);
-  freeaddrinfo(localinfo);
   ListBuffer_free(plb_display);
   ListBuffer_free(plb_send);
+
+  // Clean ups
+  Shutdown_cleanup();
+  freeaddrinfo(remoteinfo);
+  freeaddrinfo(localinfo);
   close(socketfd);
+  fclose(fp);
 }

@@ -7,6 +7,6 @@ void Display_init(ListBuffer* pListBuffer);
 
 void Display_exit();
 
-void Display_signal_print();
+// void Display_signal();
 
 #endif
