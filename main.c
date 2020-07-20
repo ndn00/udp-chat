@@ -60,4 +60,5 @@ int main(int argc, char* argv[]) {
   freeaddrinfo(localinfo);
   ListBuffer_free(plb_display);
   ListBuffer_free(plb_send);
+  close(socketfd);
 }
