@@ -25,4 +25,8 @@ void Shutdown_signal() {
   assert(pthread_mutex_lock(&mutex) == 0);
   { assert(pthread_cond_signal(&cond) == 0); }
   assert(pthread_mutex_unlock(&mutex) == 0);
+  // fputs("cleaning mutexes\n", stdout);
+  // fflush(stdout);
+  // assert(pthread_mutex_destroy(&mutex) == 0);
+  // assert(pthread_cond_destroy(&cond) == 0);
 }

@@ -4,6 +4,9 @@
 #include <netdb.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 
@@ -56,6 +59,14 @@ void Send_init(ListBuffer* pListBuffer, const int* pSfd,
   assert(pthread_create(&threadPID, NULL, Send_transfer, NULL) == 0);
 }
 void Send_exit() {
+  // assert(pthread_mutex_unlock(&mutex) == 0);
+  // assert(pthread_mutex_destroy(&mutex) == 0);
+  // fputs("destroyed mutex", stdout);
+  // fflush(stdout);
+  // assert(pthread_cond_signal(&cond) == 0);
+  // assert(pthread_cond_destroy(&cond) == 0);
+  // fputs("destroyed cond", stdout);
+  // fflush(stdout);
   assert(pthread_cancel(threadPID) == 0);
   assert(pthread_join(threadPID, NULL) == 0);
 }

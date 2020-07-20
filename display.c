@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "listbuffer.h"
 #include "shutdown.h"
@@ -53,4 +54,6 @@ void Display_init(ListBuffer* pListBuffer) {
 void Display_exit() {
   assert(pthread_cancel(threadPID) == 0);
   assert(pthread_join(threadPID, NULL) == 0);
+  // assert(pthread_mutex_destroy(&mutex) == 0);
+  // assert(pthread_cond_destroy(&cond) == 0);
 }
