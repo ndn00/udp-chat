@@ -28,8 +28,8 @@ ListBuffer *ListBuffer_init() {
 }
 void ListBuffer_free(ListBuffer *plb) {
   List_free(plb->pList, freeptr);
-  assert(pthread_mutex_destroy(&(plb->mutex)) == 0);
-  assert(pthread_cond_destroy(&(plb->cond)) == 0);
+  // assert(pthread_mutex_destroy(&(plb->mutex)) == 0);
+  // assert(pthread_cond_destroy(&(plb->cond)) == 0);
   free(plb);
 }
 void ListBuffer_enqueue(ListBuffer *plb, char *pItem) {
