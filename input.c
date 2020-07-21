@@ -12,29 +12,30 @@
 #include "send.h"
 #include "shutdown.h"
 
-#define MAX_BUFFER 100
-
-static pthread_cond_t cond;
-static pthread_mutex_t mutex;
+#define MAX_BUFFER 4000
 
 static pthread_t threadPID;
+
+// Blocking input once SHUTDOWN_STR is received
+static pthread_cond_t cond;
+static pthread_mutex_t mutex;
+static bool deleteBuffer = true;
+
 static ListBuffer* plb;
-static char* buffer;
+static char* buffer = NULL;
 
-extern FILE* fp;
-
-// void Input_signal() { cond_signal(&cond, &mutex); }
+FILE* fp;
 
 void* Input_scan(void* unused) {
-  cond_timedwait(&cond, &mutex);
-
   while (true) {
     buffer = (char*)malloc(MAX_BUFFER * sizeof(char));
     fgets(buffer, MAX_BUFFER, fp);
+    // fgets(buffer, MAX_BUFFER, stdin);
 
     // Critical Section:
     ListBuffer_enqueue(plb, buffer);
-    if (Shutdown_check(NULL)) {
+    if (Shutdown_check(buffer)) {
+      deleteBuffer = false;
       cond_wait(&cond, &mutex);
     }
   }
@@ -42,17 +43,18 @@ void* Input_scan(void* unused) {
 }
 
 void Input_init(ListBuffer* pListBuffer) {
+  fp = fopen("input.txt", "a+");
+
   plb = pListBuffer;
-  assert(pthread_mutex_init(&(mutex), NULL) == 0);
-  assert(pthread_cond_init(&(cond), NULL) == 0);
   assert(pthread_create(&threadPID, NULL, Input_scan, NULL) == 0);
 }
 
 void Input_exit() {
+  fclose(fp);
   assert(pthread_cancel(threadPID) == 0);
-  assert(pthread_join(threadPID, NULL) == 0);
-  assert(pthread_mutex_unlock(&(mutex)) == 0);
-  assert(pthread_mutex_destroy(&(mutex)) == 0);
-  assert(pthread_cond_destroy(&(cond)) == 0);
-  free(buffer);
+  cond_destroy(&cond, &mutex);
+  if (deleteBuffer) {
+    free(buffer);
+  }
 }
+void Input_waitForShutdown() { assert(pthread_join(threadPID, NULL) == 0); }

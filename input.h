@@ -7,6 +7,8 @@ void Input_init(ListBuffer* pListBuffer);
 
 void Input_exit();
 
+void Input_waitForShutdown();
+
 // void Input_signal();
 
 #endif

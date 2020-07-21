@@ -12,5 +12,7 @@ void Send_init(ListBuffer* pListBuffer, const int* pSfd,
 
 void Send_exit();
 
+void Send_waitForShutdown();
+
 // void Send_signal();
 #endif

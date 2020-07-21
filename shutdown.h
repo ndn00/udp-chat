@@ -7,9 +7,8 @@
 
 #define SHUTDOWN_STR "!\n"
 
-void Shutdown_wait(ListBuffer* pListBuffer1, ListBuffer* pListBuffer2);
+void Shutdown_waitForShutdown();
 bool Shutdown_check(char* buffer);
 void Shutdown_signal();
-void Shutdown_cleanup();
 
 #endif

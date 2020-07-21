@@ -16,19 +16,12 @@
 #define MAX_BUFFER 100
 
 static pthread_t threadPID;
-static pthread_mutex_t mutex;
-static pthread_cond_t cond;
 
 static int socketfd;
 static ListBuffer* plb;
 static char* buffer;
 
-// void Receive_signal() { cond_signal(&cond, &mutex); }
-
 void* Receive_listen(void* unused) {
-  cond_timedwait(&cond, &mutex);
-  assert(pthread_mutex_destroy(&mutex) == 0);
-  assert(pthread_cond_destroy(&cond) == 0);
   while (true) {
     buffer = (char*)malloc(MAX_BUFFER * sizeof(char));
 
@@ -53,12 +46,11 @@ void* Receive_listen(void* unused) {
 void Receive_init(ListBuffer* pListBuffer, const int* sfd) {
   socketfd = *sfd;
   plb = pListBuffer;
-  assert(pthread_mutex_init(&(mutex), NULL) == 0);
-  assert(pthread_cond_init(&(cond), NULL) == 0);
   assert(pthread_create(&threadPID, NULL, Receive_listen, NULL) == 0);
 }
 void Receive_exit() {
   assert(pthread_cancel(threadPID) == 0);
-  assert(pthread_join(threadPID, NULL) == 0);
   free(buffer);
 }
+
+void Receive_waitForShutdown() { assert(pthread_join(threadPID, NULL) == 0); }

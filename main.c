@@ -15,7 +15,6 @@
 #include "send.h"
 #include "shutdown.h"
 
-FILE* fp;
 // wrapper for getaddrinfo
 static void getaddr(char* node, char* serv, struct addrinfo** ppAddr) {
   struct addrinfo hints;
@@ -36,8 +35,6 @@ static void getaddr(char* node, char* serv, struct addrinfo** ppAddr) {
 }
 
 int main(int argc, char* argv[]) {
-  fp = fopen("input.txt", "a+");
-
   // get local & remote info
   struct addrinfo *remoteinfo = NULL, *localinfo = NULL;
   getaddr(argv[2], argv[3], &remoteinfo);
@@ -68,21 +65,13 @@ int main(int argc, char* argv[]) {
   Receive_init(plb_display, &socketfd);
 
   // main thread wait
-  Shutdown_wait(plb_send, plb_display);
-
-  // Shutting down threads
-  Input_exit();
-  Send_exit();
-  Receive_exit();
-  Display_exit();
+  Shutdown_waitForShutdown();
 
   ListBuffer_free(plb_display);
   ListBuffer_free(plb_send);
 
   // Clean ups
-  Shutdown_cleanup();
   freeaddrinfo(remoteinfo);
   freeaddrinfo(localinfo);
   close(socketfd);
-  fclose(fp);
 }
