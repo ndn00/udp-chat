@@ -31,7 +31,6 @@ void* Send_transfer(void* unused) {
       assert(sendto(socketfd, buffer, strlen(buffer), 0, remoteinfo->ai_addr,
                     remoteinfo->ai_addrlen) != -1);
     }
-
     bool shutdown = Shutdown_ConsumerReadytoShutdown(buffer);
     free(buffer);
     buffer = NULL;
