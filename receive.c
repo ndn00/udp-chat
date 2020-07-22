@@ -4,6 +4,7 @@
 #include <netdb.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -13,18 +14,19 @@
 #include "listbuffer.h"
 #include "shutdown.h"
 
-#define MAX_BUFFER 100
+#define MAX_BUFFER 4000
 
 static pthread_t threadPID;
 
 static int socketfd;
 static ListBuffer* plb;
-static char* buffer;
+static char* buffer = NULL;
 
 void* Receive_listen(void* unused) {
+  buffer = (char*)malloc(MAX_BUFFER * sizeof(char));
   while (true) {
-    buffer = (char*)malloc(MAX_BUFFER * sizeof(char));
-
+    printf("rloop\n");
+    fflush(stdout);
     // dummy
     struct sockaddr_in sinRemote;
     unsigned int sin_len = sizeof(sinRemote);

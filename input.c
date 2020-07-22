@@ -16,45 +16,40 @@
 
 static pthread_t threadPID;
 
-// Blocking input once SHUTDOWN_STR is received
-static pthread_cond_t cond;
-static pthread_mutex_t mutex;
-static bool deleteBuffer = true;
-
 static ListBuffer* plb;
 static char* buffer = NULL;
+static bool eofFlag = false;
 
-FILE* fp;
+static FILE* fp;
 
 void* Input_scan(void* unused) {
+  fp = fopen("input.txt", "a+");
+  buffer = (char*)malloc(MAX_BUFFER * sizeof(char));
   while (true) {
-    buffer = (char*)malloc(MAX_BUFFER * sizeof(char));
-    fgets(buffer, MAX_BUFFER, fp);
-    // fgets(buffer, MAX_BUFFER, stdin);
+    printf("iloop\n");
+    fflush(stdout);
+    fgets(buffer, MAX_BUFFER, stdin);
+
+    printf("fgets'd\n");
+    fflush(stdout);
+    // fgets(buffer, MAX_BUFFER, fp);
 
     // Critical Section:
     ListBuffer_enqueue(plb, buffer);
-    if (Shutdown_check(buffer)) {
-      deleteBuffer = false;
-      cond_wait(&cond, &mutex);
-    }
+
+    printf("fgets'd\n");
   }
   return NULL;
 }
 
 void Input_init(ListBuffer* pListBuffer) {
-  fp = fopen("input.txt", "a+");
-
   plb = pListBuffer;
   assert(pthread_create(&threadPID, NULL, Input_scan, NULL) == 0);
 }
 
 void Input_exit() {
-  fclose(fp);
+  // fclose(fp);
   assert(pthread_cancel(threadPID) == 0);
-  cond_destroy(&cond, &mutex);
-  if (deleteBuffer) {
-    free(buffer);
-  }
+  free(buffer);
 }
 void Input_waitForShutdown() { assert(pthread_join(threadPID, NULL) == 0); }

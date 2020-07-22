@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "condutils.h"
 #include "list.h"
@@ -11,6 +12,8 @@
 
 #define FULL_LIST_MSG "\n[Err]: Full buffer reached, possible loss messages\n"
 #define MAX_LIST_BUFFER_SIZE (LIST_MAX_NUM_NODES / 2)
+#define MAX_BUFFER 4000
+
 static void freeptr(void *pItem) { free(pItem); }
 
 struct ListBuffer_s {
@@ -18,6 +21,21 @@ struct ListBuffer_s {
   pthread_mutex_t mutex;  // Control access to data
   pthread_cond_t cond;    // Handle full/empty cases
 };
+
+bool ListBuffer_empty(ListBuffer *plb) {
+  bool ret = false;
+  assert(pthread_mutex_lock(&(plb->mutex)) == 0);
+  { ret = (List_count(plb->pList) == 0); }
+  assert(pthread_mutex_unlock(&(plb->mutex)) == 0);
+  return ret;
+}
+bool ListBuffer_full(ListBuffer *plb) {
+  bool ret = false;
+  assert(pthread_mutex_lock(&(plb->mutex)) == 0);
+  { ret = (List_count(plb->pList) == MAX_LIST_BUFFER_SIZE); }
+  assert(pthread_mutex_unlock(&(plb->mutex)) == 0);
+  return ret;
+}
 
 ListBuffer *ListBuffer_init() {
   ListBuffer *plb = (ListBuffer *)malloc(sizeof(ListBuffer));
@@ -33,17 +51,23 @@ void ListBuffer_signal(ListBuffer *plb) {
 }
 void ListBuffer_free(ListBuffer *plb) {
   List_free(plb->pList, freeptr);
-  cond_destroy(&(plb->cond), &(plb->mutex));
+  assert(pthread_cond_destroy(&(plb->cond)) == 0);
+  // cond_destroy(&(plb->cond), &(plb->mutex));
   free(plb);
 }
+
 void ListBuffer_enqueue(ListBuffer *plb, char *pItem) {
   assert(pthread_mutex_lock(&(plb->mutex)) == 0);
-  while (List_count(plb->pList) == MAX_LIST_BUFFER_SIZE) {
+  while (ListBuffer_full(plb)) {
     // Handle full buffer case
     fputs(FULL_LIST_MSG, stderr);
     assert(pthread_cond_wait(&(plb->cond), &(plb->mutex)) == 0);
   }
-  assert(List_prepend(plb->pList, pItem) == 0);
+  char *pe = (char *)malloc(MAX_BUFFER * sizeof(char));
+  strcpy(pe, pItem);
+  assert(List_prepend(plb->pList, pe) == 0);
+  printf("e: %s", pe);
+  fflush(stdout);
   assert(pthread_cond_signal(&(plb->cond)) == 0);
   assert(pthread_mutex_unlock(&(plb->mutex)) == 0);
 }
@@ -51,13 +75,15 @@ void ListBuffer_enqueue(ListBuffer *plb, char *pItem) {
 char *ListBuffer_dequeue(ListBuffer *plb) {
   char *pItem = NULL;
   assert(pthread_mutex_lock(&(plb->mutex)) == 0);
-  while (List_count(plb->pList) == 0) {
+  while (ListBuffer_empty(plb)) {
     assert(pthread_cond_wait(&(plb->cond), &(plb->mutex)) == 0);
   }
   if (!Shutdown_check(NULL)) {
     pItem = (char *)List_trim(plb->pList);
     assert(pItem != NULL);
   }
+  printf("d: %s", pItem);
+  fflush(stdout);
   assert(pthread_cond_signal(&(plb->cond)) == 0);
   assert(pthread_mutex_unlock(&(plb->mutex)) == 0);
   return pItem;
