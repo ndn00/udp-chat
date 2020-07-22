@@ -33,8 +33,10 @@ ListBuffer *ListBuffer_init() {
 }
 void ListBuffer_free(ListBuffer *plb) {
   List_free(plb->pList, freeptr);
-  assert(pthread_cond_destroy(&(plb->cond)) == 0);
-  // cond_destroy(&(plb->cond), &(plb->mutex));
+  pthread_cond_broadcast(&(plb->cond));
+  pthread_cond_destroy(&(plb->cond));
+  pthread_mutex_unlock(&(plb->mutex));
+  pthread_mutex_destroy(&(plb->mutex));
   free(plb);
 }
 
