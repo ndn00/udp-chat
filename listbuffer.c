@@ -51,7 +51,7 @@ void ListBuffer_signal(ListBuffer *plb) {
 }
 void ListBuffer_free(ListBuffer *plb) {
   List_free(plb->pList, freeptr);
-  assert(pthread_cond_destroy(&(plb->cond)) == 0);
+  // assert(pthread_cond_destroy(&(plb->cond)) == 0);
   // cond_destroy(&(plb->cond), &(plb->mutex));
   free(plb);
 }
@@ -66,8 +66,8 @@ void ListBuffer_enqueue(ListBuffer *plb, char *pItem) {
   char *pe = (char *)malloc(MAX_BUFFER * sizeof(char));
   strcpy(pe, pItem);
   assert(List_prepend(plb->pList, pe) == 0);
-  printf("Lc: %d\n", List_count(plb->pList));
-  fflush(stdout);
+  // printf("Lc: %d\n", List_count(plb->pList));
+  // fflush(stdout);
   assert(pthread_cond_signal(&(plb->cond)) == 0);
   assert(pthread_mutex_unlock(&(plb->mutex)) == 0);
 }
@@ -79,8 +79,8 @@ char *ListBuffer_dequeue(ListBuffer *plb) {
     assert(pthread_cond_wait(&(plb->cond), &(plb->mutex)) == 0);
   }
   pItem = (char *)List_trim(plb->pList);
-  printf("Lc: %d\n", List_count(plb->pList));
-  fflush(stdout);
+  // printf("Lc: %d\n", List_count(plb->pList));
+  // fflush(stdout);
   assert(pthread_cond_signal(&(plb->cond)) == 0);
   assert(pthread_mutex_unlock(&(plb->mutex)) == 0);
   return pItem;

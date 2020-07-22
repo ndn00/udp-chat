@@ -51,9 +51,9 @@ void Shutdown_waitForShutdown() {
   Send_waitForShutdown();
   Receive_waitForShutdown();
   assert(pthread_join(threadPID, NULL) == 0);
-  cond_destroy(&cond, &mutex);
-  pthread_mutex_destroy(&input_mutex);
-  pthread_cond_destroy(&input_cond);
+  // cond_destroy(&cond, &mutex);
+  // pthread_mutex_destroy(&input_mutex);
+  // pthread_cond_destroy(&input_cond);
   // fputs(strerror(pthread_mutex_destroy(&input_mutex)), stderr);
   // fflush(stderr);
 }
