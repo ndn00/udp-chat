@@ -21,9 +21,10 @@ static char* buffer = NULL;
 static int socketfd;
 static struct addrinfo* remoteinfo;
 static ListBuffer* plb;
+static bool b_shutdown = false;
 
 void* Send_transfer(void* unused) {
-  while (true) {
+  while (!b_shutdown) {
     // Critical Section
     buffer = (char*)ListBuffer_dequeue(plb);
     if (buffer != NULL) {
@@ -32,10 +33,10 @@ void* Send_transfer(void* unused) {
                     remoteinfo->ai_addrlen) != -1);
     }
 
-    bool shutdown = Shutdown_ConsumerReadytoShutdown(buffer);
+    b_shutdown = Shutdown_ConsumerReadytoShutdown(buffer);
     free(buffer);
     buffer = NULL;
-    if (shutdown) {
+    if (b_shutdown) {
       Shutdown_signal();
     }
   }
@@ -50,7 +51,9 @@ void Send_init(ListBuffer* pListBuffer, const int* pSfd,
   assert(pthread_create(&threadPID, NULL, Send_transfer, NULL) == 0);
 }
 void Send_exit() {
-  assert(pthread_cancel(threadPID) == 0);
+  if (!b_shutdown) {
+    assert(pthread_cancel(threadPID) == 0);
+  }
   free(buffer);
 }
 

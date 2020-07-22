@@ -16,11 +16,12 @@
 
 static pthread_t threadPID;
 static char* buffer = NULL;
+static bool b_shutdown = false;
 
 static ListBuffer* plb;
 
 void* Display_print(void* unused) {
-  while (true) {
+  while (!b_shutdown) {
     fflush(stdout);
     // Critical Section
     buffer = (char*)ListBuffer_dequeue(plb);
@@ -28,11 +29,11 @@ void* Display_print(void* unused) {
       fputs(buffer, stdout);
       fflush(stdout);
     }
-    bool shutdown = Shutdown_ConsumerReadytoShutdown(buffer);
+    b_shutdown = Shutdown_ConsumerReadytoShutdown(buffer);
     free(buffer);
     buffer = NULL;
 
-    if (shutdown) {
+    if (b_shutdown) {
       Shutdown_signal();
     }
   }
@@ -44,7 +45,9 @@ void Display_init(ListBuffer* pListBuffer) {
   assert(pthread_create(&threadPID, NULL, Display_print, NULL) == 0);
 }
 void Display_exit() {
-  assert(pthread_cancel(threadPID) == 0);
+  if (!b_shutdown) {
+    assert(pthread_cancel(threadPID) == 0);
+  }
   free(buffer);
 }
 

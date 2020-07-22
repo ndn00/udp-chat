@@ -21,10 +21,11 @@ static pthread_t threadPID;
 static int socketfd;
 static ListBuffer* plb;
 static char* buffer = NULL;
+static bool b_shutdown = false;
 
 void* Receive_listen(void* unused) {
   buffer = (char*)malloc(MAX_BUFFER * sizeof(char));
-  while (true) {
+  while (!b_shutdown) {
     fflush(stdout);
     // dummy
     struct sockaddr_in sinRemote;
@@ -40,6 +41,7 @@ void* Receive_listen(void* unused) {
 
     // Critical Section:
     ListBuffer_enqueue(plb, buffer);
+    b_shutdown = Shutdown_strcmp(buffer);
   }
   return NULL;
 }
@@ -50,7 +52,9 @@ void Receive_init(ListBuffer* pListBuffer, const int* sfd) {
   assert(pthread_create(&threadPID, NULL, Receive_listen, NULL) == 0);
 }
 void Receive_exit() {
-  assert(pthread_cancel(threadPID) == 0);
+  if (!b_shutdown) {
+    assert(pthread_cancel(threadPID) == 0);
+  }
   free(buffer);
 }
 

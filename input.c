@@ -18,22 +18,20 @@ static pthread_t threadPID;
 
 static ListBuffer* plb;
 static char* buffer = NULL;
-static bool input_exit = false;
+static bool b_shutdown = false;
 
 // static FILE* fp;
 
 void* Input_scan(void* unused) {
   // fp = fopen("input.txt", "a+");
   buffer = (char*)malloc(MAX_BUFFER * sizeof(char));
-  while (!input_exit) {
+  while (!b_shutdown) {
     fgets(buffer, MAX_BUFFER, stdin);
     // fgets(buffer, MAX_BUFFER, fp);
 
     // Critical Section:
     ListBuffer_enqueue(plb, buffer);
-    if (Shutdown_strcmp(buffer)) {
-      input_exit = true;
-    }
+    b_shutdown = Shutdown_strcmp(buffer);
   }
   return NULL;
 }
@@ -45,7 +43,7 @@ void Input_init(ListBuffer* pListBuffer) {
 
 void Input_exit() {
   // fclose(fp);
-  if (!input_exit) {
+  if (!b_shutdown) {
     assert(pthread_cancel(threadPID) == 0);
   }
   free(buffer);

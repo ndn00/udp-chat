@@ -13,11 +13,9 @@
 #include "receive.h"
 #include "send.h"
 
-#define SHUTDOWN_MSG "See ya later, virgins\n"
+#define SHUTDOWN_MSG "See ya later!\n"
 
 static pthread_t threadPID;
-static pthread_cond_t cond;
-static pthread_mutex_t mutex;
 
 static bool ShuttingDown = false;
 static bool Called = false;
@@ -39,14 +37,11 @@ void* Shutdown_threadKill(void* unused) {
   return NULL;
 }
 void Shutdown_waitForShutdown() {
-  assert(pthread_cond_init(&cond, NULL) == 0);
-  assert(pthread_mutex_init(&mutex, NULL) == 0);
   Display_waitForShutdown();
   Input_waitForShutdown();
   Send_waitForShutdown();
   Receive_waitForShutdown();
   assert(pthread_join(threadPID, NULL) == 0);
-  cond_destroy(&cond, &mutex);
 }
 void Shutdown_signal() {
   if (Called == false) {
@@ -55,5 +50,4 @@ void Shutdown_signal() {
     fflush(stdout);
     assert(pthread_create(&threadPID, NULL, Shutdown_threadKill, NULL) == 0);
   }
-  cond_wait(&cond, &mutex);
 }
