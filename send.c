@@ -32,10 +32,10 @@ void* Send_transfer(void* unused) {
                     remoteinfo->ai_addrlen) != -1);
     }
 
-    Shutdown_check(buffer);
+    bool shutdown = Shutdown_ConsumerReadytoShutdown(buffer);
     free(buffer);
     buffer = NULL;
-    if (Shutdown_check(NULL)) {
+    if (shutdown) {
       Shutdown_signal();
     }
   }

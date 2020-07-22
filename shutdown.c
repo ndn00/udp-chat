@@ -22,11 +22,14 @@ static pthread_mutex_t mutex;
 static bool ShuttingDown = false;
 static bool Called = false;
 
-bool Shutdown_check(char* buffer) {
-  if (buffer != NULL ? (strcmp(buffer, SHUTDOWN_STR) == 0) : false) {
+bool Shutdown_ConsumerReadytoShutdown(char* buffer) {
+  if (Shutdown_strcmp(buffer)) {
     ShuttingDown = true;
   }
   return ShuttingDown;
+}
+bool Shutdown_strcmp(char* buffer) {
+  return buffer != NULL ? (strcmp(buffer, SHUTDOWN_STR) == 0) : false;
 }
 void* Shutdown_threadKill(void* unused) {
   Input_exit();

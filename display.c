@@ -28,11 +28,11 @@ void* Display_print(void* unused) {
       fputs(buffer, stdout);
       fflush(stdout);
     }
-    Shutdown_check(buffer);
+    bool shutdown = Shutdown_ConsumerReadytoShutdown(buffer);
     free(buffer);
     buffer = NULL;
 
-    if (Shutdown_check(NULL)) {
+    if (shutdown) {
       Shutdown_signal();
     }
   }

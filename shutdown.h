@@ -8,7 +8,8 @@
 #define SHUTDOWN_STR "!\n"
 
 void Shutdown_waitForShutdown();
-bool Shutdown_check(char* buffer);
+bool Shutdown_ConsumerReadytoShutdown(char* buffer);
+bool Shutdown_strcmp(char* buffer);
 void Shutdown_signal();
 
 #endif
