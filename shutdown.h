@@ -11,5 +11,6 @@ void Shutdown_waitForShutdown();
 bool Shutdown_ConsumerReadytoShutdown(char* buffer);
 bool Shutdown_strcmp(char* buffer);
 void Shutdown_signal();
+void Shutdown_inputWait();
 
 #endif

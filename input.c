@@ -17,10 +17,7 @@
 static pthread_t threadPID;
 
 static ListBuffer* plb;
-static pthread_cond_t cond;
-static pthread_mutex_t mutex;
 static char* buffer = NULL;
-static bool eofFlag = false;
 
 // static FILE* fp;
 
@@ -34,7 +31,7 @@ void* Input_scan(void* unused) {
     // Critical Section:
     ListBuffer_enqueue(plb, buffer);
     if (Shutdown_strcmp(buffer)) {
-      cond_wait(&cond, &mutex);
+      Shutdown_inputWait();
     }
   }
   return NULL;
@@ -42,15 +39,12 @@ void* Input_scan(void* unused) {
 
 void Input_init(ListBuffer* pListBuffer) {
   plb = pListBuffer;
-  assert(pthread_cond_init(&cond, NULL) == 0);
-  assert(pthread_mutex_init(&mutex, NULL) == 0);
   assert(pthread_create(&threadPID, NULL, Input_scan, NULL) == 0);
 }
 
 void Input_exit() {
   // fclose(fp);
   assert(pthread_cancel(threadPID) == 0);
-  cond_destroy(&cond, &mutex);
   free(buffer);
 }
 void Input_waitForShutdown() { assert(pthread_join(threadPID, NULL) == 0); }
