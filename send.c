@@ -24,20 +24,14 @@ static ListBuffer* plb;
 
 void* Send_transfer(void* unused) {
   while (true) {
-    printf("sloop\n");
-    fflush(stdout);
     // Critical Section
     buffer = (char*)ListBuffer_dequeue(plb);
-    printf("deq'd\n");
-    fflush(stdout);
     if (buffer != NULL) {
       // Sending
       assert(sendto(socketfd, buffer, strlen(buffer), 0, remoteinfo->ai_addr,
                     remoteinfo->ai_addrlen) != -1);
     }
 
-    printf("send'd\n");
-    fflush(stdout);
     Shutdown_check(buffer);
     free(buffer);
     buffer = NULL;

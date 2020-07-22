@@ -21,7 +21,6 @@ static ListBuffer* plb;
 
 void* Display_print(void* unused) {
   while (true) {
-    printf("dloop\n");
     fflush(stdout);
     // Critical Section
     buffer = (char*)ListBuffer_dequeue(plb);

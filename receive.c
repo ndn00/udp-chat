@@ -25,7 +25,6 @@ static char* buffer = NULL;
 void* Receive_listen(void* unused) {
   buffer = (char*)malloc(MAX_BUFFER * sizeof(char));
   while (true) {
-    printf("rloop\n");
     fflush(stdout);
     // dummy
     struct sockaddr_in sinRemote;

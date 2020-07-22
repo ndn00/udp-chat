@@ -51,6 +51,6 @@ void Shutdown_signal() {
     fputs(SHUTDOWN_MSG, stdout);
     fflush(stdout);
     assert(pthread_create(&threadPID, NULL, Shutdown_threadKill, NULL) == 0);
-    cond_wait(&cond, &mutex);
   }
+  cond_wait(&cond, &mutex);
 }

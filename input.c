@@ -20,24 +20,17 @@ static ListBuffer* plb;
 static char* buffer = NULL;
 static bool eofFlag = false;
 
-static FILE* fp;
+// static FILE* fp;
 
 void* Input_scan(void* unused) {
-  fp = fopen("input.txt", "a+");
+  // fp = fopen("input.txt", "a+");
   buffer = (char*)malloc(MAX_BUFFER * sizeof(char));
   while (true) {
-    printf("iloop\n");
-    fflush(stdout);
     fgets(buffer, MAX_BUFFER, stdin);
-
-    printf("fgets'd\n");
-    fflush(stdout);
     // fgets(buffer, MAX_BUFFER, fp);
 
     // Critical Section:
     ListBuffer_enqueue(plb, buffer);
-
-    printf("fgets'd\n");
   }
   return NULL;
 }
