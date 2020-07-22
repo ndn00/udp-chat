@@ -22,21 +22,6 @@ struct ListBuffer_s {
   pthread_cond_t cond;    // Handle full/empty cases
 };
 
-bool ListBuffer_empty(ListBuffer *plb) {
-  bool ret = false;
-  assert(pthread_mutex_lock(&(plb->mutex)) == 0);
-  { ret = (List_count(plb->pList) == 0); }
-  assert(pthread_mutex_unlock(&(plb->mutex)) == 0);
-  return ret;
-}
-bool ListBuffer_full(ListBuffer *plb) {
-  bool ret = false;
-  assert(pthread_mutex_lock(&(plb->mutex)) == 0);
-  { ret = (List_count(plb->pList) == MAX_LIST_BUFFER_SIZE); }
-  assert(pthread_mutex_unlock(&(plb->mutex)) == 0);
-  return ret;
-}
-
 ListBuffer *ListBuffer_init() {
   ListBuffer *plb = (ListBuffer *)malloc(sizeof(ListBuffer));
   plb->pList = List_create();
@@ -45,9 +30,6 @@ ListBuffer *ListBuffer_init() {
   assert(pthread_cond_init(&(plb->cond), NULL) == 0);
 
   return plb;
-}
-void ListBuffer_signal(ListBuffer *plb) {
-  cond_signal(&(plb->cond), &(plb->mutex));
 }
 void ListBuffer_free(ListBuffer *plb) {
   List_free(plb->pList, freeptr);
