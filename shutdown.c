@@ -18,8 +18,6 @@
 static pthread_t threadPID;
 static pthread_cond_t cond;
 static pthread_mutex_t mutex;
-static pthread_cond_t input_cond;
-static pthread_mutex_t input_mutex;
 
 static bool ShuttingDown = false;
 static bool Called = false;
@@ -40,22 +38,15 @@ void* Shutdown_threadKill(void* unused) {
   Display_exit();
   return NULL;
 }
-void Shutdown_inputWait() { cond_wait(&input_cond, &input_mutex); }
 void Shutdown_waitForShutdown() {
   assert(pthread_cond_init(&cond, NULL) == 0);
   assert(pthread_mutex_init(&mutex, NULL) == 0);
-  assert(pthread_cond_init(&input_cond, NULL) == 0);
-  assert(pthread_mutex_init(&input_mutex, NULL) == 0);
   Display_waitForShutdown();
   Input_waitForShutdown();
   Send_waitForShutdown();
   Receive_waitForShutdown();
   assert(pthread_join(threadPID, NULL) == 0);
-  // cond_destroy(&cond, &mutex);
-  // pthread_mutex_destroy(&input_mutex);
-  // pthread_cond_destroy(&input_cond);
-  // fputs(strerror(pthread_mutex_destroy(&input_mutex)), stderr);
-  // fflush(stderr);
+  cond_destroy(&cond, &mutex);
 }
 void Shutdown_signal() {
   if (Called == false) {

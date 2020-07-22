@@ -20,5 +20,6 @@ void cond_signal(pthread_cond_t* pcond, pthread_mutex_t* pmutex) {
 void cond_destroy(pthread_cond_t* pcond, pthread_mutex_t* pmutex) {
   assert(pthread_mutex_unlock(pmutex) == 0);
   assert(pthread_mutex_destroy(pmutex) == 0);
+  assert(pthread_cond_broadcast(pcond) == 0);
   assert(pthread_cond_destroy(pcond) == 0);
 }
