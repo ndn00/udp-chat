@@ -51,7 +51,7 @@ void ListBuffer_signal(ListBuffer *plb) {
 }
 void ListBuffer_free(ListBuffer *plb) {
   List_free(plb->pList, freeptr);
-  // assert(pthread_cond_destroy(&(plb->cond)) == 0);
+  assert(pthread_cond_destroy(&(plb->cond)) == 0);
   // cond_destroy(&(plb->cond), &(plb->mutex));
   free(plb);
 }
